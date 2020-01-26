@@ -1,0 +1,1 @@
+python train.py --gpu '0' --n-labeled 250 --out cifar10@250
