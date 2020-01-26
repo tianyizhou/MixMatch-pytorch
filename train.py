@@ -135,8 +135,12 @@ def main():
         logger = Logger(os.path.join(args.out, 'log.txt'), title=title)
         logger.set_names(['Train Loss', 'Train Loss X', 'Train Loss U',  'Valid Loss', 'Valid Acc.', 'Test Loss', 'Test Acc.'])
 
+    log_backup = open(os.path.join(args.out, 'log_backup.txt'), 'w')
+    log_result = ()
+
     writer = SummaryWriter(args.out)
     step = 0
+    total_batches = 0
     test_accs = []
     # Train and val
     for epoch in range(start_epoch, args.epochs):
@@ -147,6 +151,7 @@ def main():
         _, train_acc = validate(labeled_trainloader, ema_model, criterion, epoch, use_cuda, mode='Train Stats')
         val_loss, val_acc = validate(val_loader, ema_model, criterion, epoch, use_cuda, mode='Valid Stats')
         test_loss, test_acc = validate(test_loader, ema_model, criterion, epoch, use_cuda, mode='Test Stats ')
+        total_batches += 3 * args.val_iteration
 
         step = args.val_iteration * (epoch + 1)
 
@@ -160,6 +165,10 @@ def main():
 
         # append logger file
         logger.append([train_loss, train_loss_x, train_loss_u, val_loss, val_acc, test_loss, test_acc])
+        result_iter = np.asarray([total_batches, train_loss, train_loss_x, train_loss_u, train_acc, val_loss, val_acc, test_loss, test_acc])
+        log_result = log_result + (result_iter, )
+        log_backup.write("\t".join(map(str, result_iter))+'\n')
+        log_backup.flush()
 
         # save model
         is_best = val_acc > best_acc
@@ -175,6 +184,9 @@ def main():
         test_accs.append(test_acc)
     logger.close()
     writer.close()
+
+    log_backup.close()
+    np.savetxt(os.path.join(args.out, 'log_result.txt'), np.vstack(log_result))
 
     print('Best acc:')
     print(best_acc)
@@ -249,7 +261,7 @@ def train(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_opti
 
         mixed_input = l * input_a + (1 - l) * input_b
         mixed_target = l * target_a + (1 - l) * target_b
-        print('mixed_target size', mixed_target.shape)
+        # print('mixed_target size', mixed_target.shape)
 
         # interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
         mixed_input = list(torch.split(mixed_input, batch_size))
