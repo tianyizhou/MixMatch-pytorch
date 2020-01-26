@@ -135,6 +135,7 @@ def main():
         logger = Logger(os.path.join(args.out, 'log.txt'), title=title)
         logger.set_names(['Train Loss', 'Train Loss X', 'Train Loss U',  'Valid Loss', 'Valid Acc.', 'Test Loss', 'Test Acc.'])
 
+    print('results are written to ', args.out)
     log_backup = open(os.path.join(args.out, 'log_backup.txt'), 'w')
     log_result = ()
 
