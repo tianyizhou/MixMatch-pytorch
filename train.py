@@ -405,7 +405,7 @@ class WeightEMA(object):
         one_minus_alpha = 1.0 - self.alpha
         for param, ema_param in zip(self.params, self.ema_params):
             print(param.type(), ema_param.type())
-            if not (param.type().startswith('torch.Long') or param.type().startswith('torch.Int')):
+            if not param.type().startswith(('torch.Long', 'torch.Int', 'torch.cuda.Long', 'torch.cuda.Int')):
                 ema_param.mul_(self.alpha)
                 ema_param.add_(param * one_minus_alpha)
             # customized weight decay
