@@ -404,12 +404,12 @@ class WeightEMA(object):
     def step(self):
         one_minus_alpha = 1.0 - self.alpha
         for param, ema_param in zip(self.params, self.ema_params):
-            print(param.type(), ema_param.type())
+            # print(param.type().startswith(('torch.Long', 'torch.Int', 'torch.cuda.Long', 'torch.cuda.Int')), ema_param.type().startswith(('torch.Long', 'torch.Int', 'torch.cuda.Long', 'torch.cuda.Int')))
             if not param.type().startswith(('torch.Long', 'torch.Int', 'torch.cuda.Long', 'torch.cuda.Int')):
                 ema_param.mul_(self.alpha)
                 ema_param.add_(param * one_minus_alpha)
-            # customized weight decay
-            param.mul_(1 - self.wd)
+                # customized weight decay
+                param.mul_(1 - self.wd)
 
 def interleave_offsets(batch, nu):
     groups = [batch // (nu + 1)] * (nu + 1)
