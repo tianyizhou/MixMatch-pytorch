@@ -392,10 +392,11 @@ class WeightEMA(object):
         self.model = model
         self.ema_model = ema_model
         self.alpha = alpha
-        # self.params = list(model.state_dict().values())
-        self.params = model.parameters()
-        # self.ema_params = list(ema_model.state_dict().values())
-        self.ema_params = ema_model.parameters()
+        self.params = list(model.state_dict().values())
+        print(list(model.state_dict()))
+        # self.params = model.parameters()
+        self.ema_params = list(ema_model.state_dict().values())
+        # self.ema_params = ema_model.parameters()
         self.wd = 0.02 * args.lr
 
         for param, ema_param in zip(self.params, self.ema_params):
