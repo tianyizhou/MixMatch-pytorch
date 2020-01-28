@@ -1,1 +1,1 @@
-python train.py --gpu '0' --n-labeled 1000 --out cifar10@1000
+python train.py --gpu '0' --n-labeled 4000 --out cifar10@4000large

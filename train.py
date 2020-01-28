@@ -92,10 +92,11 @@ def main():
     test_loader = data.DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=0)
 
     # Model
-    print("==> creating WRN-28-2")
+    # print("==> creating WRN-28-2")
+    print("==> creating WRN-28-135")
 
     def create_model(ema=False):
-        model = models.WideResNet(num_classes=10)
+        model = models.WideResNet(widen_factor=135, num_classes=10)
         model = model.cuda()
 
         if ema:
