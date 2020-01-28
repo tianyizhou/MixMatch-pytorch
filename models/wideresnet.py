@@ -44,21 +44,37 @@ class NetworkBlock(nn.Module):
         return self.layer(x)
 
 class WideResNet(nn.Module):
-    def __init__(self, num_classes, depth=28, widen_factor=2, dropRate=0.0):
+    def __init__(self, num_classes, depth=28, widen_factor=2, dropRate=0.0, repeat=3):
         super(WideResNet, self).__init__()
-        nChannels = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]
+        # nChannels = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]
+        nChannels = [16]
+        if widen_factor > 20:
+            for ii in range(repeat):
+                nChannels.append(2**ii * widen_factor)
+            # nChannels = [16, widen_factor, 2*widen_factor, 4*widen_factor]
+        else:
+            for ii in range(repeat):
+                nChannels.append(2**ii * 16 * widen_factor)
+            # nChannels = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]
         assert((depth - 4) % 6 == 0)
         n = (depth - 4) / 6
         block = BasicBlock
-        # 1st conv before any network block
-        self.conv1 = nn.Conv2d(3, nChannels[0], kernel_size=3, stride=1,
+        self.conv1 = nn.Conv2d(input_shape[1], nChannels[0], kernel_size=3, stride=1,
                                padding=1, bias=False)
-        # 1st block
-        self.block1 = NetworkBlock(n, nChannels[0], nChannels[1], block, 1, dropRate, activate_before_residual=True)
-        # 2nd block
-        self.block2 = NetworkBlock(n, nChannels[1], nChannels[2], block, 2, dropRate)
-        # 3rd block
-        self.block3 = NetworkBlock(n, nChannels[2], nChannels[3], block, 2, dropRate)
+        self.blocks = [NetworkBlock(n, nChannels[0], nChannels[1], block, 1, dropRate)]
+        for ii in range(repeat - 1):
+            self.blocks.append(NetworkBlock(n, nChannels[ii+1], nChannels[ii+2], block, 2, dropRate))
+        self.blocks = nn.ModuleList(self.blocks)
+        # block = BasicBlock
+        # # 1st conv before any network block
+        # self.conv1 = nn.Conv2d(3, nChannels[0], kernel_size=3, stride=1,
+        #                        padding=1, bias=False)
+        # # 1st block
+        # self.block1 = NetworkBlock(n, nChannels[0], nChannels[1], block, 1, dropRate, activate_before_residual=True)
+        # # 2nd block
+        # self.block2 = NetworkBlock(n, nChannels[1], nChannels[2], block, 2, dropRate)
+        # # 3rd block
+        # self.block3 = NetworkBlock(n, nChannels[2], nChannels[3], block, 2, dropRate)
         # global average pooling and classifier
         self.bn1 = nn.BatchNorm2d(nChannels[3], momentum=0.001)
         self.relu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
@@ -78,10 +94,13 @@ class WideResNet(nn.Module):
 
     def forward(self, x):
         out = self.conv1(x)
-        out = self.block1(out)
-        out = self.block2(out)
-        out = self.block3(out)
+        for i, blk in enumerate(self.blocks):
+            out = blk(out)
+        # out = self.block1(out)
+        # out = self.block2(out)
+        # out = self.block3(out)
         out = self.relu(self.bn1(out))
-        out = F.avg_pool2d(out, 8)
+        out = F.adaptive_avg_pool2d(out, output_size=1)
+        # out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
         return self.fc(out)
