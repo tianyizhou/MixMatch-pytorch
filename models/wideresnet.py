@@ -48,6 +48,7 @@ class WideResNet(nn.Module):
         super(WideResNet, self).__init__()
         # nChannels = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]
         nChannels = [16]
+        input_shape = (1,3,32,32)
         if widen_factor > 20:
             for ii in range(repeat):
                 nChannels.append(2**ii * widen_factor)
