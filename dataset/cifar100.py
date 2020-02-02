@@ -154,7 +154,7 @@ class CIFAR100_unlabeled(CIFAR100_labeled):
     def __init__(self, root, indexs, train=True,
                  transform=None, target_transform=None,
                  download=False):
-        super(CIFAR10_unlabeled, self).__init__(root, indexs, train=train,
+        super(CIFAR100_unlabeled, self).__init__(root, indexs, train=train,
                  transform=transform, target_transform=target_transform,
                  download=download)
         self.targets = np.array([-1 for i in range(len(self.targets))])
