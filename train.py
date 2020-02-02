@@ -18,7 +18,8 @@ import torchvision.transforms as transforms
 import torch.nn.functional as F
 
 import models.wideresnet as models
-import dataset.cifar10 as dataset
+# import dataset.cifar10 as dataset
+import dataset.cifar100 as dataset
 from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig
 from tensorboardX import SummaryWriter
 
@@ -74,7 +75,8 @@ def main():
         mkdir_p(args.out)
 
     # Data
-    print(f'==> Preparing cifar10')
+    # print(f'==> Preparing cifar10')
+    print(f'==> Preparing cifar100')
     transform_train = transforms.Compose([
         dataset.RandomPadandCrop(32),
         dataset.RandomFlip(),
@@ -85,7 +87,8 @@ def main():
         dataset.ToTensor(),
     ])
 
-    train_labeled_set, train_unlabeled_set, val_set, test_set = dataset.get_cifar10('../data/cifar10', args.n_labeled, transform_train=transform_train, transform_val=transform_val)
+    # train_labeled_set, train_unlabeled_set, val_set, test_set = dataset.get_cifar10('../data/cifar10', args.n_labeled, transform_train=transform_train, transform_val=transform_val)
+    train_labeled_set, train_unlabeled_set, val_set, test_set = dataset.get_cifar100('../data/cifar100', args.n_labeled, transform_train=transform_train, transform_val=transform_val)
     labeled_trainloader = data.DataLoader(train_labeled_set, batch_size=args.batch_size, shuffle=True, num_workers=0, drop_last=True)
     unlabeled_trainloader = data.DataLoader(train_unlabeled_set, batch_size=args.batch_size, shuffle=True, num_workers=0, drop_last=True)
     val_loader = data.DataLoader(val_set, batch_size=args.batch_size, shuffle=False, num_workers=0)
@@ -96,7 +99,8 @@ def main():
     print("==> creating WRN-28-135")
 
     def create_model(ema=False):
-        model = models.WideResNet(widen_factor=135, num_classes=10)
+        # model = models.WideResNet(widen_factor=135, num_classes=10)
+        model = models.WideResNet(widen_factor=135, num_classes=100)
         model = model.cuda()
 
         if ema:
